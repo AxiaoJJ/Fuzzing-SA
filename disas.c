@@ -235,7 +235,7 @@ void target_disas(FILE *out, CPUState *cpu, target_ulong code,
 
     for (pc = code; size > 0; pc += count, size -= count) {
 	fprintf(out, "0x" TARGET_FMT_lx ":  ", pc);
-	count = s.info.print_insn(pc, &s.info);
+	count = s.info.print_insn(pc, &s.info); //每次打印一个指令的地址
 	fprintf(out, "\n");
 	if (count < 0)
 	    break;

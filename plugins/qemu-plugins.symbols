@@ -37,4 +37,7 @@
   qemu_plugin_n_vcpus;
   qemu_plugin_n_max_vcpus;
   qemu_plugin_outs;
+  qemu_plugin_guest_base;
+  qemu_plugin_get_registers;
+  qemu_plugin_read_registers;
 };

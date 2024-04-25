@@ -4925,7 +4925,7 @@ print_insn_mips (bfd_vma memaddr,
   static const struct mips_opcode *mips_hash[OP_MASK_OP + 1];
 
   /* Build a hash table to shorten the search time.  */
-  if (! init)
+  if (! init)     //构建hash表
     {
       unsigned int i;
 
@@ -4938,7 +4938,7 @@ print_insn_mips (bfd_vma memaddr,
 		continue;
 	      if (i == ((op->match >> OP_SH_OP) & OP_MASK_OP))
 		{
-		  mips_hash[i] = op;
+		  mips_hash[i] = op;      //初始化hash，根据操作码可以对应到指令
 		  break;
 		}
 	    }
@@ -4956,14 +4956,14 @@ print_insn_mips (bfd_vma memaddr,
   info->target = 0;
   info->target2 = 0;
 
-  op = mips_hash[(word >> OP_SH_OP) & OP_MASK_OP];
+  op = mips_hash[(word >> OP_SH_OP) & OP_MASK_OP];  //利用hash表快速查找机器码对应的可能op类型的集合，R、I、J format），包含opname和opinfo
   if (op != NULL)
     {
       for (; op < &mips_opcodes[NUMOPCODES]; op++)
 	{
 	  if (op->pinfo != INSN_MACRO
 	      && !(no_aliases && (op->pinfo2 & INSN2_ALIAS))
-	      && (word & op->mask) == op->match)
+	      && (word & op->mask) == op->match)  //匹配确定的op
 	    {
 	      const char *d;
 
@@ -4990,7 +4990,7 @@ print_insn_mips (bfd_vma memaddr,
               }
 
 	      /* Figure out instruction type and branch delay information.  */
-	      if ((op->pinfo & INSN_UNCOND_BRANCH_DELAY) != 0)
+	      if ((op->pinfo & INSN_UNCOND_BRANCH_DELAY) != 0)  //根据op->pinfo中信息确定指令类型（无条件分支、条件分支、加载/存储等）
 	        {
 		  if ((info->insn_type & INSN_WRITE_GPR_31) != 0)
 		    info->insn_type = dis_jsr;
@@ -5012,7 +5012,7 @@ print_insn_mips (bfd_vma memaddr,
 		info->insn_type = dis_dref;
 
 	      (*info->fprintf_func) (info->stream, "%s", op->name);
-
+        
 	      d = op->args;
 	      if (d != NULL && *d != '\0')
 		{

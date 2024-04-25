@@ -71,6 +71,7 @@
 
 __thread int cur_block_is_good;
 
+//extern FILE *log_file;
 void HELPER(afl_maybe_log)(target_ulong cur_loc) {
 
   register uintptr_t afl_idx = cur_loc ^ afl_prev_loc;
@@ -107,7 +108,12 @@ static void afl_gen_trace(target_ulong cur_loc) {
 
   // cur_loc = (cur_loc >> 4) ^ (cur_loc << 8);
   // cur_loc &= MAP_SIZE - 1;
-  cur_loc = (uintptr_t)(afl_hash_ip((uint64_t)cur_loc));
+  
+  //fprintf(log_file, "Untranslated block address: 0x%08x\n", cur_loc);
+  //fflush(log_file);  // Flush the output to make sure it's written to the file.
+
+
+  cur_loc = (uintptr_t)(afl_hash_ip((uint64_t)cur_loc));    //此时的cur_loc已经做了hash变换
   cur_loc &= (MAP_SIZE - 1);
 
   /* Implement probabilistic instrumentation by looking at scrambled block
@@ -116,7 +122,7 @@ static void afl_gen_trace(target_ulong cur_loc) {
   if (cur_loc >= afl_inst_rms) return;
 
   TCGv cur_loc_v = tcg_const_tl(cur_loc);
-  gen_helper_afl_maybe_log(cur_loc_v);
+  gen_helper_afl_maybe_log(cur_loc_v);  //插桩函数
   tcg_temp_free(cur_loc_v);
 
 }
@@ -2068,8 +2074,8 @@ TranslationBlock *tb_gen_code(CPUState *cpu,
     tcg_func_start(tcg_ctx);
 
     tcg_ctx->cpu = env_cpu(env);
-    afl_gen_trace(pc);
-    gen_intermediate_code(cpu, tb, max_insns);
+    afl_gen_trace(pc);  //会对翻译前的基本块进行插桩
+    gen_intermediate_code(cpu, tb, max_insns);  //生成中间代码
     tcg_ctx->cpu = NULL;
     max_insns = tb->icount;
 

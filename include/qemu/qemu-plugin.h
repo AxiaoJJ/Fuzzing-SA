@@ -9,7 +9,7 @@
  */
 #ifndef QEMU_PLUGIN_API_H
 #define QEMU_PLUGIN_API_H
-
+#include <glib.h>
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -411,4 +411,16 @@ int qemu_plugin_n_max_vcpus(void);
  */
 void qemu_plugin_outs(const char *string);
 
+uintptr_t qemu_plugin_guest_base(void);
+struct qemu_plugin_register;
+typedef struct {
+    struct qemu_plugin_register *handle;
+    const char *name;
+    const char *feature;
+} qemu_plugin_reg_descriptor;
+
+
+GArray *qemu_plugin_get_registers(void);
+
+int qemu_plugin_read_register(struct qemu_plugin_register *reg, GByteArray *buf);
 #endif /* QEMU_PLUGIN_API_H */

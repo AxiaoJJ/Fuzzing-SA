@@ -29292,9 +29292,9 @@ static void mips_tr_translate_insn(DisasContextBase *dcbase, CPUState *cs)
         (ctx->hflags & MIPS_HFLAG_BMASK) == 0) {
         ctx->base.is_jmp = DISAS_TOO_MANY;
     }
-    if (ctx->base.pc_next - ctx->page_start >= TARGET_PAGE_SIZE) {
-        ctx->base.is_jmp = DISAS_TOO_MANY;
-    }
+    // if (ctx->base.pc_next - ctx->page_start >= TARGET_PAGE_SIZE) {
+    //     ctx->base.is_jmp = DISAS_TOO_MANY;
+    // }
 }
 
 static void mips_tr_tb_stop(DisasContextBase *dcbase, CPUState *cs)
@@ -29328,7 +29328,7 @@ static void mips_tr_tb_stop(DisasContextBase *dcbase, CPUState *cs)
 
 static void mips_tr_disas_log(const DisasContextBase *dcbase, CPUState *cs)
 {
-    qemu_log("IN: %s\n", lookup_symbol(dcbase->pc_first));
+    qemu_log("IN: %s\n", lookup_symbol(dcbase->pc_first));  //打印符号表中函数名称
     log_target_disas(cs, dcbase->pc_first, dcbase->tb->size);
 }
 

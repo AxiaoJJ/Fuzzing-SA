@@ -46,8 +46,8 @@ int main(int argc, char **argv)
 
 int main(int argc, char **argv, char **envp)
 {
-    qemu_init(argc, argv, envp);
-    qemu_main_loop();
+    qemu_init(argc, argv, envp);    //解析参数，根据参数初始化运行环境，包括虚拟CPU、内存、寄存器、硬件设备、文件系统，KVM（xen）
+    qemu_main_loop();       //QEMU主循环，监控程序的执行状态
     qemu_cleanup();
 
     return 0;

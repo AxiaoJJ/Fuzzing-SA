@@ -63,6 +63,14 @@ static const char *seed_optarg;
 unsigned long mmap_min_addr;
 uintptr_t guest_base;
 bool have_guest_base;
+target_ulong main_bin_start;
+target_ulong main_bin_end;
+int bk_stdin_fd = -1;
+int bk_stdout_fd = -1;
+FILE *bk_stdin;
+FILE *bk_stdout;
+FILE *log_file=NULL;
+
 
 /*
  * Used to implement backwards-compatibility for the `-strace`, and
@@ -359,6 +367,31 @@ static void handle_arg_stack_size(const char *arg)
     }
 }
 
+static void handle_arg_execve(const char *arg)
+{
+    qemu_set_execve_path(arg);
+}
+
+static void handle_arg_hackproc(const char *arg)
+{
+    qemu_set_hackproc(arg);
+}
+
+static void handle_arg_hackbind(const char *arg)
+{
+    qemu_set_hackbind(arg);
+}
+
+static void handle_arg_hacksysinfo(const char *arg)
+{
+    qemu_set_hacksysinfo(arg);
+}
+
+static void handle_arg_hookhack(const char *arg)
+{
+    qemu_set_hookhack(arg);
+}
+
 static void handle_arg_ld_prefix(const char *arg)
 {
     interp_prefix = strdup(arg);
@@ -495,6 +528,16 @@ static const struct qemu_argument arg_table[] = {
      "port",       "wait gdb connection to 'port'"},
     {"L",          "QEMU_LD_PREFIX",   true,  handle_arg_ld_prefix,
      "path",       "set the elf interpreter prefix to 'path'"},
+    {"hackbind",   "QEMU_HACKBIND",    false,   handle_arg_hackbind,
+     "",           "use hack to get around ipv6 addrs and conflicting binds"},
+    {"hackproc",   "QEMU_HACKPROC",    false,   handle_arg_hackproc,
+     "",           "use hack to get around needing to mount a writable /proc"},
+    {"hacksysinfo","QEMU_SYSINFO",    false,   handle_arg_hacksysinfo,
+     "",           "use hack to get around needing to mount a writable /proc"},
+    {"execve",     "QEMU_EXECVE",      true,   handle_arg_execve,
+     "path",       "use interpreter at 'path' when a process calls execve()"},
+    {"hookhack",   "QEMU_HOOKHACK",    false,   handle_arg_hookhack,
+     "",           "use hack to force the target binary to read from stdin"},
     {"s",          "QEMU_STACK_SIZE",  true,  handle_arg_stack_size,
      "size",       "set the stack size to 'size' bytes"},
     {"cpu",        "QEMU_CPU",         true,  handle_arg_cpu,
@@ -700,7 +743,15 @@ int main(int argc, char **argv, char **envp)
     int execfd;
     int log_mask;
     unsigned long max_reserved_va;
-
+    if (!log_file) {
+    /* Open a file to log the addresses. Append mode is used to keep the log across different runs. */
+    log_file = fopen("/address.log", "a");
+    if (!log_file) {
+      /* Handle fopen error */
+      perror("Opening log file failed");
+      exit(1);
+    }
+  }
     use_qasan = !!getenv("AFL_USE_QASAN");
 
     if (getenv("QASAN_MAX_CALL_STACK"))
@@ -942,6 +993,27 @@ int main(int argc, char **argv, char **envp)
     }
 
     g_free(target_environ);
+
+    main_bin_start = info->start_code;
+    main_bin_end = info->end_code;
+
+    bk_stdin_fd = dup2(0, 1337);
+    bk_stdout_fd = dup2(1, 1338);
+    if(bk_stdin_fd < 0 || bk_stdout_fd < 0) {
+        puts("Error when backing up stdin and stdout");
+        _exit(EXIT_FAILURE);
+    }
+
+    bk_stdin = fdopen(bk_stdin_fd, "r");
+    bk_stdout = fdopen(bk_stdout_fd, "w");
+    setbuf(bk_stdin, NULL);
+    setbuf(bk_stdout, NULL);
+    if(bk_stdin == NULL || bk_stdout == NULL) {
+        puts("Error creating backup stdin and stdout file structs");
+        _exit(EXIT_FAILURE);
+    }
+    fprintf(stderr, "[HOOK] %d %d\n", bk_stdin_fd, bk_stdout_fd);
+    fprintf(bk_stdout, "[HOOK2] %d %d\n", bk_stdin_fd, bk_stdout_fd);
 
     if (qemu_loglevel_mask(CPU_LOG_PAGE)) {
         qemu_log("guest_base  %p\n", (void *)guest_base);

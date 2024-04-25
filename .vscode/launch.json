@@ -1,0 +1,110 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(gdb) Launch qemu",
+            "type": "cppdbg",
+            "request": "launch",          
+            "program": "/AFLplusplus/afl-qemu-trace",
+            "args": ["-L", "/usr/arm-linux-gnueabihf/", "-plugin",  "./libibresolver.so", "tests/arm32/arm_thumb_mixed-static.elf"],
+            "cwd": "/AFLplusplus/qemu_mode/qemuafl/ibresolver",
+            "stopAtEntry": false,
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "qemu",
+            "program": "/AFLplusplus/afl-qemu-trace-arm",
+            "args": ["-L", "/usr/arm-linux-gnueabihf/", "-plugin",  "./libibresolver.so", "tests/arm32/arm_thumb_mixed-static.elf"],
+            "cwd": "/AFLplusplus/qemu_mode/qemuafl/ibresolver"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Launch_afl-qemu",
+            "program": "/usr/local/bin/afl-qemu-trace",
+            "args": ["/AFLplusplus/qemu_mode/qemuafl/linux-user/binary/pwn1"],
+            "cwd": "${workspaceFolder}"
+        },
+        
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Launch",
+            "program": "/AFLplusplus/afl-fuzz",
+            "args": ["-Q", "-i", "/AFLplusplus/qemu_mode/qemuafl/linux-user/input", "-o", "/AFLplusplus/qemu_mode/qemuafl/linux-user/output","-z","1", "--", "/AFLplusplus/qemu_mode/qemuafl/linux-user/binary/pwn1"],
+            "cwd": "/AFLplusplus/qemu_mode/qemuafl"
+        },
+
+        {
+            "name": "afl-qemu-trace",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/local/bin/afl-qemu-trace",
+            "args": ["/AFLplusplus/qemu_mode/qemuafl/linux-user/binary/pwn1"],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        
+        
+        {
+            "name": "(gdb) Launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/AFLplusplus/afl-fuzz",
+            "args": ["-Q", "-i", "/AFLplusplus/qemu_mode/qemuafl/linux-user/input", "-o", "/AFLplusplus/qemu_mode/qemuafl/linux-user/output", "--", "/AFLplusplus/qemu_mode/qemuafl/linux-user/binary/pwn1"],
+            "stopAtEntry": false,
+            "cwd": "/AFLplusplus/qemu_mode/qemuafl",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        }
+
+    ]
+}

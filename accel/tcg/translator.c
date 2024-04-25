@@ -93,7 +93,7 @@ void translator_loop(const TranslatorOps *ops, DisasContextBase *db,
             }
         }
 
-        if (db->pc_next == afl_entry_point) {
+        if (db->pc_next == afl_entry_point) {       //在这里开始插桩
             afl_setup();
             gen_helper_afl_entry_routine(cpu_env);
         }
@@ -151,7 +151,7 @@ void translator_loop(const TranslatorOps *ops, DisasContextBase *db,
         && qemu_log_in_addr_range(db->pc_first)) {
         FILE *logfile = qemu_log_lock();
         qemu_log("----------------\n");
-        ops->disas_log(db, cpu);
+        ops->disas_log(db, cpu);    //db表示为当前TB的翻译上下文，每次翻译一条指令
         qemu_log("\n");
         qemu_log_unlock(logfile);
     }

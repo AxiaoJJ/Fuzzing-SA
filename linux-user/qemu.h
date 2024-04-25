@@ -402,6 +402,10 @@ extern long safe_syscall_base(int *pending, long number, ...);
 
 /* syscall.c */
 int host_to_target_waitstatus(int status);
+void qemu_set_hackbind(const char *arg);
+void qemu_set_hackproc(const char *arg);
+void qemu_set_hacksysinfo(const char *arg);
+void qemu_set_execve_path(const char *path);
 
 /* strace.c */
 void print_syscall(void *cpu_env, int num,

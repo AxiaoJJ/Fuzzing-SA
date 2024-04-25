@@ -1,0 +1,24 @@
+{
+    "files.associations": {
+        "*.def": "c",
+        "*.inc": "c",
+        "future": "c",
+        "system_error": "c",
+        "bitops.h": "c",
+        "cpu.h": "c",
+        "qapi-commands-block-core.h": "c",
+        "ostream": "cpp",
+        "cstring": "c",
+        "optional": "cpp",
+        "*.tcc": "cpp",
+        "gdbstub.h": "c",
+        "*.idef": "cpp",
+        "array": "cpp",
+        "string": "cpp",
+        "string_view": "cpp",
+        "fstream": "c",
+        "iostream": "cpp"
+    },
+    "commentTranslate.targetLanguage": "zh-CN",
+    "commentTranslate.source": "Baidu"
+}

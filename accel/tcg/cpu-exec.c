@@ -36,6 +36,7 @@
 #include "exec/log.h"
 #include "qemu/main-loop.h"
 #include "qemu/selfmap.h"
+#include "qapi/error.h"
 #if defined(TARGET_I386) && !defined(CONFIG_USER_ONLY)
 #include "hw/i386/apic.h"
 #endif
@@ -689,7 +690,13 @@ void afl_forkserver(CPUState *cpu) {
       if (!child_pid) {
 
         /* Child process. Close descriptors and run free. */
-
+        /*
+        char *log_file = (char *)calloc(1025, 1);
+        snprintf(log_file, 1024, "/tmp/%d.trace.log", (int)getpid());
+        qemu_set_log_filename(log_file, &error_fatal);
+        free(log_file);
+        log_file = NULL;
+        */
         afl_fork_child = 1;
         close(FORKSRV_FD);
         close(FORKSRV_FD + 1);
@@ -1100,6 +1107,9 @@ static void init_delay_params(SyncClocks *sc, const CPUState *cpu)
  * TCG is not considered a security-sensitive part of QEMU so this does not
  * affect the impact of CFI in environment with high security requirements
  */
+extern target_ulong main_bin_start, main_bin_end;
+extern bool gh_dryrun_done;
+extern FILE *bk_stdout;
 static inline TranslationBlock * QEMU_DISABLE_CFI
 cpu_tb_exec(CPUState *cpu, TranslationBlock *itb, int *tb_exit)
 {
@@ -1107,6 +1117,13 @@ cpu_tb_exec(CPUState *cpu, TranslationBlock *itb, int *tb_exit)
     uintptr_t ret;
     TranslationBlock *last_tb;
     const void *tb_ptr = itb->tc.ptr;
+
+    if(unlikely(gh_dryrun_done)) {
+        if(main_bin_start <= itb->pc && itb->pc <= main_bin_end) {
+            fprintf(bk_stdout, "return addr: 0x" TARGET_FMT_lx "\n", itb->pc);
+            exit(0);
+        }
+    }
 
     qemu_log_mask_and_addr(CPU_LOG_EXEC, itb->pc,
                            "Trace %d: %p ["
@@ -1744,7 +1761,7 @@ int cpu_exec(CPUState *cpu)
                 cpu->cflags_next_tb = -1;
             }
 
-            tb = tb_find(cpu, last_tb, tb_exit, cflags);
+            tb = tb_find(cpu, last_tb, tb_exit, cflags);  //根据当前的pc取出一个翻译块，进行翻译（涉及到转成IR、再转成目标码的过程），最后执行
             cpu_loop_exec_tb(cpu, tb, &last_tb, &tb_exit);
             /* Try to align the host and virtual clocks
                if the guest is in advance */

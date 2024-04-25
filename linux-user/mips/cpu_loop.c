@@ -78,7 +78,7 @@ void cpu_loop(CPUMIPSState *env)
 
     for(;;) {
         cpu_exec_start(cs);
-        trapnr = cpu_exec(cs);
+        trapnr = cpu_exec(cs);  //每次执行一个翻译块
         cpu_exec_end(cs);
         process_queued_cpu_work(cs);
 
