@@ -1,0 +1,9 @@
+tree 461c17b4266485ba3bdf6ccfb7bd56dffdc5c296
+parent 1e72d3b7ad9108fec5cb90d38ddfd00bdf498db2
+author aurel32 <aurel32@c046a42c-6fe2-441c-8c8c-71466251a162> 1209414414 +0000
+committer aurel32 <aurel32@c046a42c-6fe2-441c-8c8c-71466251a162> 1209414414 +0000
+
+Fix wrong type in printf(), introduced in revision 4265
+
+
+git-svn-id: svn://svn.savannah.nongnu.org/qemu/trunk@4278 c046a42c-6fe2-441c-8c8c-71466251a162

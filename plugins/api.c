@@ -393,7 +393,7 @@ static GHashTable *reg_handles; /* hash table of PluginReg */
 
 /* Generate a stable key - would xxhash be overkill? */
 
-
+/*
 static GArray *create_register_handles(GArray *gdbstub_regs)
 {
     GArray *find_data = g_array_new(true, true,
@@ -403,12 +403,10 @@ static GArray *create_register_handles(GArray *gdbstub_regs)
         GDBRegDesc *grd = &g_array_index(gdbstub_regs, GDBRegDesc, i);
         qemu_plugin_reg_descriptor desc;
 
-        /* skip "un-named" regs */
         if (!grd->name) {
             continue;
         }
 
-        /* Create a record for the plugin */
         desc.handle = GINT_TO_POINTER(grd->gdb_reg);
         desc.name = g_intern_string(grd->name);
         desc.feature = g_intern_string(grd->feature_name);
@@ -439,3 +437,4 @@ static gpointer cpu_plus_reg_to_key(CPUState *cs, int gdb_regnum)
     key ^= gdb_regnum;
     return GUINT_TO_POINTER(key);
 }
+*/

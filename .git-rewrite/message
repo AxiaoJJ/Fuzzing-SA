@@ -1,0 +1,16 @@
+add format= to drive options (CVE-2008-2004)
+
+It is possible for a guest with a raw formatted disk image to write a
+header to that disk image describing another format (such as qcow2).
+Stopping and subsequent restart of the guest will cause qemu to detect
+that format, and could allow the guest to read any host file if qemu is
+sufficiently privileged (typical in virt environments).
+
+The patch defaults to existing behaviour (probing based on file contents),
+so it still requires the mgmt app (e.g. libvirt xml) to pass a new
+"format=raw" parameter for raw disk images.
+
+Originally noted by Avi Kivity, patch from Chris Wright.
+
+
+git-svn-id: svn://svn.savannah.nongnu.org/qemu/trunk@4277 c046a42c-6fe2-441c-8c8c-71466251a162
