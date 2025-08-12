@@ -39,5 +39,5 @@
   qemu_plugin_outs;
   qemu_plugin_guest_base;
   qemu_plugin_get_registers;
-  qemu_plugin_read_registers;
+  qemu_plugin_read_register;
 };

@@ -19,7 +19,7 @@ static inline void log_cpu_state(CPUState *cpu, int flags)
 
     if (qemu_log_enabled()) {
         rcu_read_lock();
-        logfile = qatomic_rcu_read(&qemu_logfile);
+        logfile = qatomic_rcu_read(&qemu_logfile);  //使用 RCU (Read-Copy Update) 锁来安全地读取全局日志文件变量。qatomic_rcu_read 保证在多线程环境中对全局变量的读取是一致的。
         if (logfile) {
             cpu_dump_state(cpu, logfile->fd, flags);
         }

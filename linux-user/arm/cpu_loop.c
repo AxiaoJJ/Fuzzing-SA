@@ -241,7 +241,7 @@ void cpu_loop(CPUARMState *env)
         cpu_exec_end(cs);
         process_queued_cpu_work(cs);
 
-        switch(trapnr) {
+        switch(trapnr) {        //处理系统调用
         case EXCP_UDEF:
         case EXCP_NOCP:
         case EXCP_INVSTATE:
@@ -325,7 +325,7 @@ void cpu_loop(CPUARMState *env)
                 }
             }
             break;
-        case EXCP_SWI:
+        case EXCP_SWI:          //软中断，表示处理系统调用
             {
                 env->eabi = 1;
                 /* system call */
