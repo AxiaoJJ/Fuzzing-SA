@@ -62,7 +62,7 @@ void translator_loop(const TranslatorOps *ops, DisasContextBase *db,
 
     plugin_enabled = plugin_gen_tb_start(cpu, tb,
                                          tb_cflags(db->tb) & CF_MEMI_ONLY);
-
+    //翻译基本块中的每条指令
     while (true) {
         db->num_insns++;
         ops->insn_start(db, cpu);

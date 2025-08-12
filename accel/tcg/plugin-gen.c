@@ -841,7 +841,7 @@ static void plugin_gen_inject(const struct qemu_plugin_tb *plugin_tb)
     }
     pr_ops();
 }
-
+//检查 CPU 状态是否启用了特定的插件事件，并据此进行相应的初始化。
 bool plugin_gen_tb_start(CPUState *cpu, const TranslationBlock *tb, bool mem_only)
 {
     struct qemu_plugin_tb *ptb = tcg_ctx->plugin_tb;

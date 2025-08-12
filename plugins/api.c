@@ -50,7 +50,7 @@
 #include "trace/mem.h"
 #include "qemu/main-loop.h"
 #include "exec/gdbstub.h"
-
+// #include "target/arm/cpu.h"
 /* Uninstall and Reset handlers */
 
 void qemu_plugin_uninstall(qemu_plugin_id_t id, qemu_plugin_simple_cb_t cb)
@@ -384,12 +384,29 @@ uintptr_t qemu_plugin_guest_base(void) {
 
 static QemuMutex reg_handle_lock;
 
-struct qemu_plugin_register {
-    const char *name;
-    int gdb_reg_num;
-};
 
 static GHashTable *reg_handles; /* hash table of PluginReg */
+
+// void qemu_plugin_read_register(struct qemu_plugin_register *contents)
+// {
+//     CPUState *cs = current_cpu;
+//     ARMCPU *cpu = ARM_CPU(cs);
+//     CPUARMState *env = &cpu->env;
+//     uint32_t buf[100];
+//     memset(buf, 0, sizeof(buf));
+//     for(int i =0 ; i < 16; i++){
+//         if (cpu_memory_rw_debug(cs, env->regs[i], buf, sizeof(buf), 0) == 0) {
+//         // 成功读取内存            
+//             contents[i].address = env->regs[i];           
+//             memcpy(contents[i].value, buf, sizeof(buf));
+//             contents[i].value[399] = '\0';
+//         } else {
+//             // 读取失败
+//             contents[i].address = env->regs[i];
+//             contents[i].value[0] = '\0';
+//         }
+//     }
+// }
 
 /* Generate a stable key - would xxhash be overkill? */
 

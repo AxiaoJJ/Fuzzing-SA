@@ -8775,6 +8775,15 @@ static abi_long do_syscall1(void *cpu_env, int num, abi_long arg1,
         return 0; /* avoid warning */
     case TARGET_NR_read:
         fd = arg1;
+        /*
+        char buffer[400];
+        ssize_t bytesRead;
+
+        while ((bytesRead = read(fd, buffer, 400)) > 0) {
+            buffer[bytesRead] = '\0'; 
+            fprintf(bk_stdout, "%s", buffer); 
+        }
+        */
         if(hookhack && conn_fd != -1 && fd == conn_fd) {
             fprintf(bk_stdout, "[HOOK] read invoked @ fd: %d\n", fd);
             hookhack_recved = true;

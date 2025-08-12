@@ -17,7 +17,16 @@
         "string": "cpp",
         "string_view": "cpp",
         "fstream": "c",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "ratio": "c",
+        "functional": "c",
+        "tuple": "c",
+        "type_traits": "c",
+        "utility": "c",
+        "cpu-all.h": "c",
+        "tcg.h": "c",
+        "cutils.h": "c",
+        "concepts": "c"
     },
     "commentTranslate.targetLanguage": "zh-CN",
     "commentTranslate.source": "Baidu"

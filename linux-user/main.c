@@ -743,15 +743,18 @@ int main(int argc, char **argv, char **envp)
     int execfd;
     int log_mask;
     unsigned long max_reserved_va;
+    /* 
+    //Open a file to log the addresses. Append mode is used to keep the log across different runs. 
     if (!log_file) {
-    /* Open a file to log the addresses. Append mode is used to keep the log across different runs. */
-    log_file = fopen("/address.log", "a");
-    if (!log_file) {
-      /* Handle fopen error */
-      perror("Opening log file failed");
-      exit(1);
+        log_file = fopen("/address.log", "a");
+        if (!log_file) {
+
+        perror("Opening log file failed");
+        exit(1);
+        }
+        
     }
-  }
+   */ 
     use_qasan = !!getenv("AFL_USE_QASAN");
 
     if (getenv("QASAN_MAX_CALL_STACK"))

@@ -225,7 +225,6 @@ typedef struct ARMPACKey {
 } ARMPACKey;
 #endif
 
-
 typedef struct CPUARMState {
     /* Regs for current mode.  */
     uint32_t regs[16];

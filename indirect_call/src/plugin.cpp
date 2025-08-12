@@ -1,7 +1,6 @@
 #include <glib.h>
 extern "C"{
-    #include <qemu/qemu-plugin.h>
-    
+    #include <../../include/qemu/qemu-plugin.h>
 }
 #include <dlfcn.h>
 #include <string>
@@ -12,6 +11,8 @@ extern "C"{
 #include <set>
 #include <utility>
 #include <iomanip>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 QEMU_PLUGIN_EXPORT int qemu_plugin_version = QEMU_PLUGIN_VERSION;
 
@@ -25,6 +26,7 @@ is_indirect_branch_fn is_indirect_branch;
 
 static optional<uint64_t> branch_addr = {};
 static std::set<std::pair<uint64_t, uint64_t>> recorded_pairs;
+std::set<std::pair<uint64_t , int>> controll_set;
 
 static ofstream outfile;
 typedef struct image_offset {
@@ -32,50 +34,50 @@ typedef struct image_offset {
     size_t image_name_pos;
 } image_offset;
 
-/*
-static void print_register_values() {
-    outfile << "Register values at indirect branch:" << endl;
-    outfile << "RAX: 0x" << hex << qemu_plugin_read_register(reg, buf) << endl;
-}
-*/
-/*
-void *read_memory_from_register(GByteArray *buffer, qemu_plugin_register *reg) {
-    if (qemu_plugin_read_register(reg, buffer) != -1) {
-        // 假设寄存器值是一个有效的地址
-        uintptr_t addr = *(uintptr_t*)buffer->data;
-        char* memory_content = (char*) addr;  
-        return memory_content;
-    }
-    return nullptr;
-}
 
-// 主函数，读取 r0 到 r4 的寄存器值，并尝试读取它们指向的内存
-void read_registers_and_memory() {
-    GArray *regs = qemu_plugin_get_registers();
-    GByteArray *buffer = g_byte_array_new();
-    const char *register_names[] = {"r0", "r1", "r2", "r3", "r4"};
+// static void print_register_values() {
+//     outfile << "Register values at indirect branch:" << endl;
+//     outfile << "RAX: 0x" << hex << qemu_plugin_read_register(reg, buf) << endl;
+// }
 
-    for (int i = 0; i < 5; i++) {
-        for (int j = 0; j < regs->len; j++) {
-            qemu_plugin_reg_descriptor *desc = &g_array_index(regs, qemu_plugin_reg_descriptor, j);
-            if (strcmp(desc->name, register_names[i]) == 0) {
-                char* memory_content = static_cast<char*>(read_memory_from_register(buffer, (qemu_plugin_register*)desc->handle));
-                if (memory_content != nullptr) {
-                    cout << "Memory content at address stored in " << register_names[i] << ": " << *memory_content << endl;
-                    outfile << '[' << register_names[i] <<  "]: " << *memory_content << endl;
-                } else {
-                    cout << "Failed to read memory content for " << register_names[i] << endl;
-                    outfile << register_names[i] << ": " << *memory_content << endl;
-                }
-                break;
-            }
-        }
-    }
 
-    g_byte_array_free(buffer, TRUE);
-    g_array_free(regs, TRUE);
-}
-*/
+// void *read_memory_from_register(GByteArray *buffer, qemu_plugin_register *reg) {
+//     if (qemu_plugin_read_register(reg, buffer) != -1) {
+//         // 假设寄存器值是一个有效的地址
+//         uintptr_t addr = *(uintptr_t*)buffer->data;
+//         char* memory_content = (char*) addr;  
+//         return memory_content;
+//     }
+//     return nullptr;
+// }
+
+// // 主函数，读取 r0 到 r4 的寄存器值，并尝试读取它们指向的内存
+// void read_registers_and_memory() {
+//     GArray *regs = qemu_plugin_get_registers();
+//     GByteArray *buffer = g_byte_array_new();
+//     const char *register_names[] = {"r0", "r1", "r2", "r3", "r4"};
+
+//     for (int i = 0; i < 5; i++) {
+//         for (int j = 0; j < regs->len; j++) {
+//             qemu_plugin_reg_descriptor *desc = &g_array_index(regs, qemu_plugin_reg_descriptor, j);
+//             if (strcmp(desc->name, register_names[i]) == 0) {
+//                 char* memory_content = static_cast<char*>(read_memory_from_register(buffer, (qemu_plugin_register*)desc->handle));
+//                 if (memory_content != nullptr) {
+//                     cout << "Memory content at address stored in " << register_names[i] << ": " << *memory_content << endl;
+//                     outfile << '[' << register_names[i] <<  "]: " << *memory_content << endl;
+//                 } else {
+//                     cout << "Failed to read memory content for " << register_names[i] << endl;
+//                     outfile << register_names[i] << ": " << *memory_content << endl;
+//                 }
+//                 break;
+//             }
+//         }
+//     }
+
+//     g_byte_array_free(buffer, TRUE);
+//     g_array_free(regs, TRUE);
+// }
+
 static optional<image_offset> guest_vaddr_to_offset(const string_view maps_entry, uint64_t guest_vaddr) {
     uint32_t name_pos;
     uint64_t start, end, file_load_offset;
@@ -131,19 +133,52 @@ static void mark_indirect_branch(uint64_t callsite_vaddr, uint64_t dst_vaddr) {
         cout << "ERROR: Unable to find destination address in /proc/self/maps" << endl;
     }
 
-    auto pair = std::make_pair(callsite_vaddr, dst_vaddr);
-    if (recorded_pairs.find(pair) == recorded_pairs.end()) {
-        recorded_pairs.insert(pair);
-        if(callsite_image.find("lib") == std::string::npos && dst_image.find("lib") == std::string::npos){
-            outfile << "0x" << hex << callsite->offset << ",";
-            outfile << "0x" << hex << dst->offset << ",";
-            outfile << "0x" << hex << callsite_vaddr << ",";
-            outfile << "0x" << hex << dst_vaddr << ",";
-            outfile << callsite_image << ",";
-            outfile << dst_image << endl;
+    if(callsite_image.find("lib") == std::string::npos && dst_image.find("lib") == std::string::npos){
+        auto pair = std::make_pair(callsite_vaddr, dst_vaddr);
+        if (recorded_pairs.find(pair) == recorded_pairs.end()) {
+            recorded_pairs.insert(pair);
+        
+            //outfile << "0x" << hex << callsite->offset << ",";
+            //outfile << "0x" << hex << dst->offset << ",";
+            outfile << "0x" << hex << callsite_vaddr << " -> ";
+            outfile << "0x" << hex << dst_vaddr << ": ";
+            //outfile << callsite_image << ",";
+            //outfile << dst_image << endl;
+            int fd = open("/scratch/output/default/.cur_input", O_RDONLY);
+            if (fd == -1) {
+                perror("open");
+                return;
+            }
+            bool Contoll_flag = 0;
+            char buffer[1024];
+            ssize_t bytesRead = read(fd, buffer, sizeof(buffer) - 1);
+            if (bytesRead == -1) {
+                perror("read");
+                close(fd);
+                return;
+            }
+            buffer[bytesRead] = '\0';
+            close(fd);
+            //outfile << buffer << endl;
+            struct qemu_plugin_register contents[16];
+            qemu_plugin_read_register(contents);
             
+            for (int i = 0; i < 4; i++){
+                if(contents[i].value[0] != 0){
+                    if (strstr(buffer, contents[i].value) != NULL) {
+                        auto arg_pair = std::make_pair(callsite_vaddr, i);
+                        if (controll_set.find(arg_pair) == controll_set.end()) {
+                            controll_set.insert(arg_pair);
+                            outfile << " arg "  << i <<" is controllable.";
+                        }
+                    }
+                }
+                    
+            }
+            outfile << endl;       
         }
     }
+
     return;
 };
 
@@ -269,7 +304,7 @@ extern int qemu_plugin_install(qemu_plugin_id_t id, const qemu_info_t *info, int
         return -5;
     }
 
-    outfile << "callsite offset,dest offset,callsite vaddr,dest vaddr,callsite ELF,dest ELF" << endl;
+    outfile << "Indirect call informatrion: " << endl;
     // Register a callback for each time a block is translated
     qemu_plugin_register_vcpu_tb_trans_cb(id, block_trans_handler);
 
